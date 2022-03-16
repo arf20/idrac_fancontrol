@@ -1,0 +1,11 @@
+add_executable(temp_monitor main.cpp)
+
+#target_link_libraries(temp_monitor libOpenIPMI)
+target_link_libraries(temp_monitor OpenIPMI)
+target_link_libraries(temp_monitor OpenIPMIutils)
+target_link_libraries(temp_monitor OpenIPMIposix)
+target_link_libraries(temp_monitor OpenIPMIglib)
+target_link_libraries(temp_monitor OpenIPMIcmdlang)
+target_link_libraries(temp_monitor OpenIPMIpthread)
+target_link_libraries(temp_monitor OpenIPMIui)
+target_link_libraries(temp_monitor IPMIlanserv)
