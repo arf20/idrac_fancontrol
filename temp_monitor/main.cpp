@@ -81,19 +81,19 @@ int watchLoop() {
 		}
 		
 		// Print
-		std::cout << "Temps:" << std::endl 
+		/*std::cout << "Temps:" << std::endl 
 			<< "\tInlet: " << inletTemp << "\tExhaust: " << exhaustTemp << std::endl
 			<< "\tCpu0: " << cpuTemps[0] << "\tCpu1: " << cpuTemps[1] << std::endl
 		<< "Fan Speeds" << std::endl
 			<< "\tFan1: " << fanSpeeds[0] << "\tFan2: " << fanSpeeds[1] << "\tFan3: " << fanSpeeds[2] << std::endl
 			<< "\tFan4: " << fanSpeeds[3] << "\tFan5: " << fanSpeeds[4] << "\tFan6: " << fanSpeeds[5] << std::endl
 		<< "Total Power Consumption" << std::endl
-			<< "\tPower: " << totalPower << std::endl;
+			<< "\tPower: " << totalPower << "\t\t" << inletTempHist.size() << std::endl;*/
 
 		// Move cursor to top
-		if (screenOverwrite)
+		/*if (screenOverwrite)
 			for (int i = 0; i < 8; i++)
-				std::cout << "\x1b[A";
+				std::cout << "\x1b[A";*/
 
 		// Push to history
 		inletTempHist.push_back(inletTemp);

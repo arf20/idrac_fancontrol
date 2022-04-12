@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 // History
 std::vector<float> inletTempHist;
@@ -44,12 +45,36 @@ bool graphInit() {
     return true;
 }
 
+int DrawText(SDL_Renderer *renderer, std::string str, TTF_Font* font, int x, int y, SDL_Color color) {
+    SDL_Surface* surfaceText = TTF_RenderText_Solid(font, str.c_str(), color);
+    SDL_Texture* textureText = SDL_CreateTextureFromSurface(renderer, surfaceText);
+
+    SDL_Rect rectText; //create a rect
+    rectText.x = x;  //controls the rect's x coordinate 
+    rectText.y = y; // controls the rect's y coordinte
+    rectText.w = 100; // controls the width of the rect
+    rectText.h = 100; // controls the height of the rect
+
+    SDL_RenderCopy(renderer, textureText, NULL, &rectText);
+
+    return 0;
+}
+
 void graphLoop() {
     int margin = 20;
     int tempTop = (HEIGHT / 2) + margin;
     int tempBottom = HEIGHT - margin;
     int tempLeft = 0 + margin;
     int tempRight = WIDTH - margin;
+
+    int pointStep = 10;
+
+    // Text font
+    TTF_Font* Sans = TTF_OpenFont("Sans.ttf", 24);
+
+    SDL_Color White = {255, 255, 255};
+
+    
 
     while (!done) {
         SDL_Event event;
@@ -64,6 +89,25 @@ void graphLoop() {
         SDL_RenderDrawLine(renderer, tempLeft, tempBottom, tempRight, tempBottom);
         SDL_RenderDrawLine(renderer, tempLeft, tempTop, tempLeft, tempBottom);
         SDL_RenderDrawLine(renderer, tempRight, tempTop, tempRight, tempBottom);
+
+        // Draw temperature graph
+        if (inletTempHist.size() > 1) {
+            int graphLeft = tempRight - (inletTempHist.size() * pointStep);
+
+            DrawText(renderer, std::to_string(inletTempHist.size()), Sans, 10, 10, White);
+
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+            for (int i = 0; i < inletTempHist.size(); i++) {
+                int x1 = graphLeft + (i * pointStep);
+                int x2 = graphLeft + ((i + 1) * pointStep);
+                int y1 = inletTempHist[i];
+                int y2 = inletTempHist[i + 1];
+                SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+                //;
+            }
+
+            //std::cout << inletTempHist.size() << "\t" << graphLeft << "\t" << y1 << std::endl;
+        }
 
         SDL_RenderPresent(renderer);
 
