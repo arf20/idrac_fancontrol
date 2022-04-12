@@ -1,3 +1,5 @@
+#include "main.h"
+
 #include <iostream>
 #include <cstdio>
 #include <memory>
@@ -7,6 +9,11 @@
 #include <array>
 #include <vector>
 #include <thread>
+
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
 
 // Execute command, wait for it to finish and return its stdout
 std::string exec(const std::string& cmd) {
@@ -84,5 +91,7 @@ int main(int argc, char **argv) {
 	std::thread watch(watchloop);
 	watch.detach();
 	
+	if (!graphInit()) exit(1);
+
 	while (1) {}
 }
