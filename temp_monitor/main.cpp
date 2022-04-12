@@ -83,6 +83,9 @@ int watchloop() {
 			<< "\tFan4: " << fanSpeeds[3] << "\tFan5: " << fanSpeeds[4] << "\tFan6: " << fanSpeeds[5] << std::endl
 		<< "Total Power Consumption" << std::endl
 			<< "\tPower: " << totalPower << std::endl;
+
+		for (int i = 0; i < 8; i++)
+			std::cout << "\x1b[A";
 	}
 }
 
