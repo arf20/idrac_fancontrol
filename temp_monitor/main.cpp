@@ -9,6 +9,7 @@
 #include <array>
 #include <vector>
 #include <thread>
+#include <chrono>
 
 #ifdef _WIN32
 #define popen _popen
@@ -50,6 +51,9 @@ const std::string totalPowerSens = 	"Pwr Consumption  ";
 // IPMI tool command
 const std::string ipmiCommand = "ipmitool sdr elist full";
 
+
+bool screenOverwrite = true;
+
 // Watch
 int watchloop() {
 	while (true) {
@@ -84,17 +88,28 @@ int watchloop() {
 		<< "Total Power Consumption" << std::endl
 			<< "\tPower: " << totalPower << std::endl;
 
-		for (int i = 0; i < 8; i++)
-			std::cout << "\x1b[A";
+		if (screenOverwrite)
+			for (int i = 0; i < 8; i++)
+				std::cout << "\x1b[A";
 	}
 }
 
 
 int main(int argc, char **argv) {
+	bool graph = true;
+
+	for (int i = 1; i < argc; i++) {
+		if (std::string(argv[i]) == "--no-graph") graph = false;
+		if (std::string(argv[i]) == "--no-vt100") screenOverwrite = false;
+	}
+
+
 	std::thread watch(watchloop);
 	watch.detach();
+
+	if (!graph) std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
 	
 	if (!graphInit()) exit(1);
 
-	while (1) {}
+	std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
 }
