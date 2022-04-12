@@ -33,9 +33,9 @@ std::string exec(const std::string& cmd) {
 // Variables
 float inletTemp = 0.0f;
 float exhaustTemp = 0.0f;
-float cpuTemps[2] = { 0.0f, 0.0f};
+std::array<float, 2> cpuTemps = { 0.0f, 0.0f};
 
-float fanSpeeds[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+std::array<float, 6> fanSpeeds = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 float totalPower = 0.0f;
 
@@ -55,12 +55,13 @@ const std::string ipmiCommand = "ipmitool sdr elist full";
 bool screenOverwrite = true;
 
 // Watch
-int watchloop() {
+int watchLoop() {
 	while (true) {
 		std::string ipmiout = exec(ipmiCommand);
 		std::istringstream ss(ipmiout);
 		std::string line;
 		int cpuTempIdx = 0;
+		// Deserialize stdout
 		while (std::getline(ss, line)) {
 			const std::string sens = line.substr(0, 17);
 			const std::string val = line.substr(38, std::string::npos);
@@ -79,6 +80,7 @@ int watchloop() {
 			if (sens == totalPowerSens) totalPower = (float)std::stoi(val);
 		}
 		
+		// Print
 		std::cout << "Temps:" << std::endl 
 			<< "\tInlet: " << inletTemp << "\tExhaust: " << exhaustTemp << std::endl
 			<< "\tCpu0: " << cpuTemps[0] << "\tCpu1: " << cpuTemps[1] << std::endl
@@ -88,9 +90,17 @@ int watchloop() {
 		<< "Total Power Consumption" << std::endl
 			<< "\tPower: " << totalPower << std::endl;
 
+		// Move cursor to top
 		if (screenOverwrite)
 			for (int i = 0; i < 8; i++)
 				std::cout << "\x1b[A";
+
+		// Push to history
+		inletTempHist.push_back(inletTemp);
+		exhaustTempHist.push_back(exhaustTemp);
+		cpuTempsHist.push_back(cpuTemps);
+		fanSpeedsHist.push_back(fanSpeeds);
+		totalPowerHist.push_back(totalPower);
 	}
 }
 
@@ -103,13 +113,14 @@ int main(int argc, char **argv) {
 		if (std::string(argv[i]) == "--no-vt100") screenOverwrite = false;
 	}
 
-
-	std::thread watch(watchloop);
-	watch.detach();
-
-	if (!graph) std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
+	if (!graph) watchLoop();
 	
 	if (!graphInit()) exit(1);
 
-	std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::hours(std::numeric_limits<int>::max()));
+	std::thread graphThread(graphLoop);
+	graphThread.detach();
+
+	watchLoop();
+
+	return 0;
 }
