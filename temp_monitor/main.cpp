@@ -81,19 +81,23 @@ int watchLoop() {
 		}
 		
 		// Print
-		/*std::cout << "Temps:" << std::endl 
+		#ifdef PRINT
+		std::cout << "Temps:" << std::endl 
 			<< "\tInlet: " << inletTemp << "\tExhaust: " << exhaustTemp << std::endl
 			<< "\tCpu0: " << cpuTemps[0] << "\tCpu1: " << cpuTemps[1] << std::endl
 		<< "Fan Speeds" << std::endl
 			<< "\tFan1: " << fanSpeeds[0] << "\tFan2: " << fanSpeeds[1] << "\tFan3: " << fanSpeeds[2] << std::endl
 			<< "\tFan4: " << fanSpeeds[3] << "\tFan5: " << fanSpeeds[4] << "\tFan6: " << fanSpeeds[5] << std::endl
 		<< "Total Power Consumption" << std::endl
-			<< "\tPower: " << totalPower << "\t\t" << inletTempHist.size() << std::endl;*/
+			<< "\tPower: " << totalPower << "\t\t" << inletTempHist.size() << std::endl;
+		#endif
 
 		// Move cursor to top
-		/*if (screenOverwrite)
+		#ifdef PRINT
+		if (screenOverwrite)
 			for (int i = 0; i < 8; i++)
-				std::cout << "\x1b[A";*/
+				std::cout << "\x1b[A";
+		#endif
 
 		// Push to history
 		inletTempHist.push_back(inletTemp);
@@ -101,6 +105,14 @@ int watchLoop() {
 		cpuTempsHist.push_back(cpuTemps);
 		fanSpeedsHist.push_back(fanSpeeds);
 		totalPowerHist.push_back(totalPower);
+
+		if (inletTempHist.size() > 117) {
+			inletTempHist.erase(inletTempHist.begin());
+			exhaustTempHist.erase(exhaustTempHist.begin());
+			cpuTempsHist.erase(cpuTempsHist.begin());
+			fanSpeedsHist.erase(fanSpeedsHist.begin());
+			totalPowerHist.erase(totalPowerHist.begin());
+		}
 	}
 }
 
