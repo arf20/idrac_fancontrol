@@ -31,6 +31,8 @@ std::string exec(const std::string& cmd) {
 }
 
 // Variables
+std::chrono::time_point<std::chrono::system_clock> timeNow;
+
 float inletTemp = 0.0f;
 float exhaustTemp = 0.0f;
 std::array<float, 2> cpuTemps = { 0.0f, 0.0f};
@@ -79,8 +81,11 @@ int watchLoop() {
 			}
 			if (sens == totalPowerSens) totalPower = (float)std::stoi(val);
 		}
+
+		timeNow = std::chrono::system_clock::now();
 		
 		// Print
+		#define PRINT
 		#ifdef PRINT
 		std::cout << "Temps:" << std::endl 
 			<< "\tInlet: " << inletTemp << "\tExhaust: " << exhaustTemp << std::endl
@@ -89,7 +94,7 @@ int watchLoop() {
 			<< "\tFan1: " << fanSpeeds[0] << "\tFan2: " << fanSpeeds[1] << "\tFan3: " << fanSpeeds[2] << std::endl
 			<< "\tFan4: " << fanSpeeds[3] << "\tFan5: " << fanSpeeds[4] << "\tFan6: " << fanSpeeds[5] << std::endl
 		<< "Total Power Consumption" << std::endl
-			<< "\tPower: " << totalPower << "\t\t" << inletTempHist.size() << std::endl;
+			<< "\tPower: " << totalPower << "\t\t" << maxPoints << std::endl;
 		#endif
 
 		// Move cursor to top
@@ -100,13 +105,15 @@ int watchLoop() {
 		#endif
 
 		// Push to history
+		timeHist.push_back(timeNow);
 		inletTempHist.push_back(inletTemp);
 		exhaustTempHist.push_back(exhaustTemp);
 		cpuTempsHist.push_back(cpuTemps);
 		fanSpeedsHist.push_back(fanSpeeds);
 		totalPowerHist.push_back(totalPower);
 
-		if (inletTempHist.size() > 117) {
+		if (timeHist.size() > maxPoints) {
+			timeHist.erase(timeHist.begin());
 			inletTempHist.erase(inletTempHist.begin());
 			exhaustTempHist.erase(exhaustTempHist.begin());
 			cpuTempsHist.erase(cpuTempsHist.begin());
