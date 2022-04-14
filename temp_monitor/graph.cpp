@@ -55,6 +55,14 @@ constexpr int tempMax = 64;
 
 constexpr float tempScaleStep = 4;
 
+// Fan speed box
+constexpr int fanTop = 3 * margin;
+constexpr int fanBottom = (HEIGHT / 2) - margin;
+
+constexpr int speedMin = 0;
+constexpr int speedMax = 4000;
+
+
 SDL_Color White = {255, 255, 255};
 
 
@@ -142,32 +150,39 @@ void graphLoop() {
         SDL_RenderDrawLine(renderer, left, tempTop, left, tempBottom);
         SDL_RenderDrawLine(renderer, right, tempTop, right, tempBottom);
 
+        // Draw fan speed box
+        SDL_RenderDrawLine(renderer, left, fanTop, right, fanTop);
+        SDL_RenderDrawLine(renderer, left, fanBottom, right, fanBottom);
+        SDL_RenderDrawLine(renderer, left, fanTop, left, fanBottom);
+        SDL_RenderDrawLine(renderer, right, fanTop, right, fanBottom);
+
         // Draw temp scale
         SDL_SetRenderDrawColor(renderer, 64, 64, 64, SDL_ALPHA_OPAQUE);      // greyish
         for (int i = tempMin; i <= tempMax; i += tempScaleStep) {
             DrawText(renderer, std::to_string(i) + " C", smallfont, margin, mapfloat(i, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, White);
             if (i != tempMin && i != tempMax) {
                 int y = mapfloat(i, tempMin, tempMax, tempBottom, tempTop);
-                SDL_RenderDrawLine(renderer, left, y, right, y);
+                SDL_RenderDrawLine(renderer, left + 1, y, right - 1, y);
             }
         }
 
-        // Draw temperature graph
+        // Draw graphs
         if (timeHist.size() > 1) {
-            int graphLeft = right - (timeHist.size() * pointStep) + pointStep;
+            int size = timeHist.size();
+            int graphLeft = right - (size * pointStep) + pointStep;
 
             // Draw time scale
-            for (int i = 0; i < timeHist.size(); i += 4) {
+            for (int i = 0; i < size; i += 4) {
                 int x = graphLeft + (i * pointStep);
                 std::chrono::duration<float> diff = timeNow - timeHist[i];
                 std::stringstream stream;
                 stream << std::fixed << std::setprecision(1) << diff.count();
                 DrawText(renderer, stream.str(), smallfont, x, tempBottom + 3, TEXT_CENTERX, White);
                 if (x != left && x != right)
-                    SDL_RenderDrawLine(renderer, x, tempTop, x, tempBottom);
+                    SDL_RenderDrawLine(renderer, x, tempTop + 1, x, tempBottom - 1);
             }
 
-            for (int i = 0; i < timeHist.size() - 1; i++) {
+            for (int i = 0; i < size - 1; i++) {
                 int x1 = graphLeft + (i * pointStep);
                 int x2 = graphLeft + ((i + 1) * pointStep);
 
@@ -185,29 +200,41 @@ void graphLoop() {
 
                 // CPUs
                 SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-                for (int j = 0; j < 2; j++) {
+                for (int j = 0; j < cpuTemps.size(); j++) {
                     y1 = mapfloat(cpuTempsHist[i][j], tempMin, tempMax, tempBottom, tempTop);
                     y2 = mapfloat(cpuTempsHist[i + 1][j], tempMin, tempMax, tempBottom, tempTop);
+                    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+                }
+
+                // Fan speeds
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                for (int j = 0; j < fanSpeeds.size(); j++) {
+                    y1 = mapfloat(fanSpeedsHist[i][j], speedMin, speedMax, fanBottom, fanTop);
+                    y2 = mapfloat(fanSpeedsHist[i + 1][j], speedMin, speedMax, fanBottom, fanTop);
                     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
                 }
             }
             
             // Inlet text
-            int tempVal = inletTempHist[inletTempHist.size() - 1];
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+            int tempVal = inletTemp;
             DrawText(renderer, "Inlet: " + std::to_string(tempVal) + " C", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 0});
 
             // Exhaust
-            tempVal = exhaustTempHist[exhaustTempHist.size() - 1];
-            SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+            tempVal = exhaustTemp;
             DrawText(renderer, "Exhaust: " + std::to_string(tempVal) + " C", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {0, 0, 255});
 
             // CPUs
             SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-            for (int j = 0; j < 2; j++) {
-                tempVal = cpuTempsHist[cpuTempsHist.size() - 1][j];
-                SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+            for (int j = 0; j < cpuTemps.size(); j++) {
+                tempVal = cpuTemps[j];
                 DrawText(renderer, "CPU " + std::to_string(j) + ": " + std::to_string(tempVal) + " C", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
+            }
+
+            // Fan speeds
+            SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            for (int j = 0; j < fanSpeeds.size(); j++) {
+                tempVal = fanSpeeds[j];
+                DrawText(renderer, "Fan" + std::to_string(j) + ": " + std::to_string(tempVal) + "rpm", smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
             }
         }
 
