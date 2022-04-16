@@ -17,5 +17,6 @@ const std::array<std::string, FAN_N> fanSpeedSens { "Fan1             ", "Fan2  
 
 const std::string totalPowerSens = 	"Pwr Consumption  ";
 
-// IPMI tool command
+// IPMI tool commands
 const std::string ipmiCommand = "ipmitool sdr elist full";
+const std::string ipmiSetSpeedCommand = "ipmitool raw 0x30 0x30 0x02 0xff 0x"; // Followed by fan speed in hex value
