@@ -8,3 +8,4 @@ set(COMMON_SRC
 )
 
 add_subdirectory(temp_monitor)
+add_subdirectory(fan_control)
