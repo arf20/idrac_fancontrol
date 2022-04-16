@@ -22,15 +22,6 @@ void watchCallback(SensorData sd) {
 	fanSpeedsHist.push_back(sd.fanSpeeds);
 	totalPowerHist.push_back(sd.totalPower);
 
-	if (timeHist.size() > maxPoints) {
-		timeHist.erase(timeHist.begin());
-		inletTempHist.erase(inletTempHist.begin());
-		exhaustTempHist.erase(exhaustTempHist.begin());
-		cpuTempsHist.erase(cpuTempsHist.begin());
-		fanSpeedsHist.erase(fanSpeedsHist.begin());
-		totalPowerHist.erase(totalPowerHist.begin());
-	}
-
 	// Compute SAMPLE_AVG_N sample average of the averages of CPU temperatures
 	float tempAvg = 0.0f;
 	if (timeHist.size() >= SAMPLE_AVG_N) {

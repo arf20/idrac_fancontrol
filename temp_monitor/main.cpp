@@ -21,7 +21,7 @@ void watchCallback(SensorData sd) {
 		<< "\tFan1: " << sd.fanSpeeds[0] << "\tFan2: " << sd.fanSpeeds[1] << "\tFan3: " << sd.fanSpeeds[2] << std::endl
 		<< "\tFan4: " << sd.fanSpeeds[3] << "\tFan5: " << sd.fanSpeeds[4] << "\tFan6: " << sd.fanSpeeds[5] << std::endl
 	<< "Total Power Consumption" << std::endl
-		<< "\tPower: " << sd.totalPower << "\t\t" << maxPoints << std::endl;
+		<< "\tPower: " << sd.totalPower << std::endl;
 	#endif
 
 	// Move cursor to top
@@ -38,15 +38,6 @@ void watchCallback(SensorData sd) {
 	cpuTempsHist.push_back(sd.cpuTemps);
 	fanSpeedsHist.push_back(sd.fanSpeeds);
 	totalPowerHist.push_back(sd.totalPower);
-
-	if (timeHist.size() > maxPoints) {
-		timeHist.erase(timeHist.begin());
-		inletTempHist.erase(inletTempHist.begin());
-		exhaustTempHist.erase(exhaustTempHist.begin());
-		cpuTempsHist.erase(cpuTempsHist.begin());
-		fanSpeedsHist.erase(fanSpeedsHist.begin());
-		totalPowerHist.erase(totalPowerHist.begin());
-	}
 }
 
 int main(int argc, char **argv) {
