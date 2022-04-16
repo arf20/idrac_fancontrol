@@ -1,5 +1,7 @@
 #pragma once
 
+#include "conf.h"
+
 #include <chrono>
 #include <array>
 #include <functional>
@@ -10,9 +12,9 @@ struct SensorData {
 
     float inletTemp;
     float exhaustTemp;
-    std::array<float, 2> cpuTemps;
+    std::array<float, CPU_N> cpuTemps;
 
-    std::array<float, 6> fanSpeeds;
+    std::array<float, FAN_N> fanSpeeds;
 
     float totalPower;
 };

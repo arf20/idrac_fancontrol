@@ -1,3 +1,5 @@
+#include "conf.h"
+
 #include "watch.h"
 
 #include <string>
@@ -27,18 +29,6 @@ std::string exec(const std::string& cmd) {
     }
     return result;
 }
-
-// Sensors
-const std::string inletTempSens = 	"Inlet Temp       ";
-const std::string exhaustTempSens = "Exhaust Temp     ";
-const std::string cpuTempSens = 	"Temp             ";
-
-const std::array<std::string, 6> fanSpeedSens { "Fan1             ", "Fan2             ", "Fan3             ", "Fan4             ", "Fan5             ", "Fan6             "};
-
-const std::string totalPowerSens = 	"Pwr Consumption  ";
-
-// IPMI tool command
-const std::string ipmiCommand = "ipmitool sdr elist full";
 
 // Watch
 void watchLoop(std::function<void(SensorData)> callback) {

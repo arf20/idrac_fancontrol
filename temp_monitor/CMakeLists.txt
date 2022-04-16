@@ -1,4 +1,4 @@
-add_executable(temp_monitor main.cpp watch.cpp graph.cpp)
+add_executable(temp_monitor ${COMMON_SRC} main.cpp)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

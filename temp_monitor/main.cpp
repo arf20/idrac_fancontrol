@@ -1,5 +1,5 @@
-#include "watch.h"
-#include "graph.h"
+#include "../common/watch.h"
+#include "../common/graph.h"
 
 #include <iostream>
 #include <string>

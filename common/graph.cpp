@@ -1,3 +1,4 @@
+#include "conf.h"
 #include "graph.h"
 
 #include <iostream>
@@ -12,8 +13,8 @@
 std::vector<std::chrono::time_point<std::chrono::system_clock>> timeHist;
 std::vector<float> inletTempHist;
 std::vector<float> exhaustTempHist;
-std::vector<std::array<float, 2>> cpuTempsHist;
-std::vector<std::array<float, 6>> fanSpeedsHist;
+std::vector<std::array<float, CPU_N>> cpuTempsHist;
+std::vector<std::array<float, FAN_N>> fanSpeedsHist;
 std::vector<float> totalPowerHist;
 
 
@@ -220,7 +221,7 @@ void graphLoop() {
 
                 // CPUs
                 SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-                for (int j = 0; j < cpuTempsHist[0].size(); j++) {
+                for (int j = 0; j < CPU_N; j++) {
                     y1 = mapfloat(cpuTempsHist[i][j], tempMin, tempMax, tempBottom, tempTop);
                     y2 = mapfloat(cpuTempsHist[i + 1][j], tempMin, tempMax, tempBottom, tempTop);
                     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
@@ -228,7 +229,7 @@ void graphLoop() {
 
                 // Fan speeds
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-                for (int j = 0; j < fanSpeedsHist[0].size(); j++) {
+                for (int j = 0; j < FAN_N; j++) {
                     y1 = mapfloat(fanSpeedsHist[i][j], speedMin, speedMax, fanBottom, fanTop);
                     y2 = mapfloat(fanSpeedsHist[i + 1][j], speedMin, speedMax, fanBottom, fanTop);
                     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
@@ -245,14 +246,14 @@ void graphLoop() {
 
             // CPUs
             SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
-            for (int j = 0; j < cpuTempsHist[0].size(); j++) {
+            for (int j = 0; j < CPU_N; j++) {
                 tempVal = cpuTempsHist.back()[j];
                 DrawText(renderer, "CPU " + std::to_string(j) + ": " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
             }
 
             // Fan speeds
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            for (int j = 0; j < fanSpeedsHist[0].size(); j++) {
+            for (int j = 0; j < FAN_N; j++) {
                 tempVal = fanSpeedsHist.back()[j];
                 DrawText(renderer, "Fan" + std::to_string(j) + ": " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
             }
