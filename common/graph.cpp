@@ -43,7 +43,7 @@ constexpr int margin = 20;
 
 constexpr int pointStep = 10;
 
-constexpr int left = 3 * margin;
+constexpr int left = 5 * margin;
 constexpr int right = WIDTH - (5 * margin);
 
 int maxPoints = ((right - left) / pointStep) + 1;
@@ -173,14 +173,17 @@ void graphLoop() {
         t = 0;
         for (int i = speedMin; i <= speedMax; i += speedScaleStep, t++) {
             int y = mapfloat(i, speedMin, speedMax, fanBottom, fanTop);
-            if (t % 2 == 0)
-                DrawText(renderer, std::to_string(i), smallfont, margin - 5, y, TEXT_CENTERY, White);
+            if (t % 2 == 0) {
+                std::stringstream stream;
+                stream << std::fixed << std::setprecision(1) << (float)i / 1000.0f << " "  << std::setprecision(0) << ((float)i / (float)speedMax) * 100.0f;
+                DrawText(renderer, stream.str(), smallfont, margin - 5, y, TEXT_CENTERY, White);
+            }
             if (i != speedMin && i != speedMax)
                 SDL_RenderDrawLine(renderer, left + 1, y, right - 1, y);
         }
 
         // Draw units
-        DrawText(renderer, "rpm", smallfont, margin - 5, fanTop - 25, 0, White);
+        DrawText(renderer, "krpm %max", smallfont, margin - 5, fanTop - 25, 0, White);
         DrawText(renderer, "C", smallfont, margin, tempTop - 25, 0, White);
 
         auto timeNow = std::chrono::system_clock::now();
