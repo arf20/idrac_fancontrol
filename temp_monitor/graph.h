@@ -1,19 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <array>
 #include <chrono>
-
-// Variables
-extern std::chrono::time_point<std::chrono::system_clock> timeNow;
-
-extern float inletTemp;
-extern float exhaustTemp;
-extern std::array<float, 2> cpuTemps;
-
-extern std::array<float, 6> fanSpeeds;
-
-extern float totalPower;
+#include <array>
 
 // History
 extern int maxPoints;
