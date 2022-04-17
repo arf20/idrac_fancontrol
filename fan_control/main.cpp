@@ -1,6 +1,7 @@
 #include "../common/conf.h"
 #include "../common/watch.h"
 #include "../common/graph.h"
+#include "../common/server.h"
 
 #include "control.h"
 
@@ -10,8 +11,11 @@
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <unistd.h>
+#include <cstring>
 
 bool screenOverwrite = true;
+bool server = false;
 
 void watchCallback(SensorData sd) {
 	// Push to history
@@ -21,6 +25,32 @@ void watchCallback(SensorData sd) {
 	cpuTempsHist.push_back(sd.cpuTemps);
 	fanSpeedsHist.push_back(sd.fanSpeeds);
 	totalPowerHist.push_back(sd.totalPower);
+
+	if (server) {
+		// Send to multicast clients
+		Packet packet { };
+
+		// Set hostname
+		char hostname[1024];
+		gethostname(hostname, 1024);
+		memcpy(packet.host, hostname, 24);
+		packet.host[23] = '\0';
+
+		packet.timeNow = std::chrono::system_clock::to_time_t(sd.timeNow);
+
+		// Set fields
+		packet.inletTemp = sd.inletTemp;
+		packet.exhaustTemp = sd.exhaustTemp;
+		packet.totalPower = sd.totalPower;
+
+		for (int i = 0; i < CPU_N; i++)
+			packet.cpuTemps[i] = sd.cpuTemps[i];
+
+		for (int i = 0; i < FAN_N; i++)
+			packet.fanSpeeds[i] = sd.fanSpeeds[i];
+
+		serverSend(packet);
+	}
 
 	// Compute SAMPLE_AVG_N sample average of the averages of CPU temperatures
 	float tempAvg = 0.0f;
@@ -84,16 +114,21 @@ int main(int argc, char **argv) {
 	for (int i = 1; i < argc; i++) {
 		if (std::string(argv[i]) == "--no-graph") graph = false;
 		if (std::string(argv[i]) == "--no-vt100") screenOverwrite = false;
+		if (std::string(argv[i]) == "--server") { server = true; }
+	}
+
+	if (server)
+		if (!serverInit(multicastAddr, multicastPort))
+			exit(1);
+
+	if (graph) { 
+		if (!graphInit()) exit(1);
+
+		std::thread graphThread(graphLoop);
+		graphThread.detach();
 	}
 
 	acquireControl();
-
-	if (!graph) watchLoop(watchCallback);
-	
-	if (!graphInit()) exit(1);
-
-	std::thread graphThread(graphLoop);
-	graphThread.detach();
 
 	watchLoop(watchCallback);
 

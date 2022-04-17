@@ -5,6 +5,7 @@ set(COMMON_SRC
     "../common/watch.cpp"
     "../common/graph.cpp"
     "../common/exec.cpp"
+    "../common/server.cpp"
 )
 
 add_subdirectory(temp_monitor)

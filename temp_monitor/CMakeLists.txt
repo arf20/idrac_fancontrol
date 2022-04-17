@@ -1,4 +1,4 @@
-add_executable(temp_monitor ${COMMON_SRC} main.cpp)
+add_executable(temp_monitor ${COMMON_SRC} client.cpp main.cpp)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

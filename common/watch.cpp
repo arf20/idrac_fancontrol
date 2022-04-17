@@ -18,7 +18,7 @@ void watchLoop(std::function<void(SensorData)> callback) {
 		std::string line;
 		int cpuTempIdx = 0;
 		// Deserialize stdout
-        SensorData sd;
+        SensorData sd { };
 		while (std::getline(ss, line)) {
 			const std::string sens = line.substr(0, 17);
 			const std::string val = line.substr(38, std::string::npos);
