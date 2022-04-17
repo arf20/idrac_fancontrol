@@ -23,8 +23,8 @@ std::vector<float> totalPowerHist;
 
 // Fonts
 #define FONT "../FSEX300.ttf"
-int midfontsize = 24;
-int smallfontsize = 16;
+constexpr int midfontsize = 24;
+constexpr int smallfontsize = 16;
 
 // SDL stuff
 SDL_Window *window = nullptr;
@@ -41,14 +41,10 @@ SDL_bool done = SDL_FALSE;
 // UI stuff
 constexpr int margin = 20;
 
-//constexpr int pointStep = 10;
-
 constexpr int left = 5 * margin;
 constexpr int right = WIDTH - (5 * margin);
 
 constexpr float timeLimit = 180;  // seconds
-
-//int maxPoints = ((right - left) / pointStep) + 1;
 
 // Temperature box
 constexpr int tempTop = (HEIGHT / 2) + margin;
@@ -65,6 +61,12 @@ constexpr int fanBottom = (HEIGHT / 2) - margin;
 constexpr int speedMin = 0;
 constexpr int speedMax = 18000;
 constexpr int speedScaleStep = 900;
+
+// for values
+constexpr int valueSeparationX = 6 * margin;
+constexpr int valueSeparationY = smallfontsize;
+const std::string tempUnit = "C";
+const std::string speedUnit = "rpm";
 
 
 SDL_Color White = {255, 255, 255};
@@ -208,7 +210,6 @@ void graphLoop() {
         // Draw time scale
         for (float t = 0; t < timeLimit; t += 5) {
             int x = timeX(t);
-            //std::chrono::duration<float> diff = timeNow - timeHist[i];
             std::stringstream stream;
             stream << std::fixed << std::setprecision(0) << t;
             DrawText(renderer, stream.str(), smallfont, x, tempBottom + 3, TEXT_CENTERX, White);
@@ -226,7 +227,6 @@ void graphLoop() {
         // Draw graphs
         if (timeHist.size() > 1) {
             int size = timeHist.size();
-            //int graphLeft = right - (size * pointStep) + pointStep;
 
             for (int i = 0; i < size - 1; i++) {
                 std::chrono::duration<float> diff1 = std::chrono::system_clock::now() - timeHist[i];
@@ -262,27 +262,60 @@ void graphLoop() {
                     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
                 }
             }
-            
-            // Inlet text
+
+            // Values
+            // Inlet
+            int valX = left;
+            int valY = margin;
             int tempVal = inletTempHist.back();
-            DrawText(renderer, "Inlet: " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 0});
+            DrawText(renderer, "Inlet: " + std::to_string(tempVal) + tempUnit, smallfont, valX, valY, 0, {255, 0, 0});
+            valY += valueSeparationY;
 
             // Exhaust
             tempVal = exhaustTempHist.back();
-            DrawText(renderer, "Exhaust: " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {0, 0, 255});
+            DrawText(renderer, "Exhaust: " + std::to_string(tempVal) + tempUnit, smallfont, valX, valY, 0, {0, 0, 255});
+            valX += valueSeparationX; valY -= valueSeparationY;
 
             // CPUs
-            SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
             for (int j = 0; j < CPU_N; j++) {
                 tempVal = cpuTempsHist.back()[j];
-                DrawText(renderer, "CPU " + std::to_string(j) + ": " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
+                DrawText(renderer, "CPU" + std::to_string(j) + ": " + std::to_string(tempVal) + tempUnit, smallfont, valX, valY, 0, {255, 0, 255});
+                if (j % 2 == 0) valY += valueSeparationY;
+                else {
+                    valY -= valueSeparationY;
+                    valX += valueSeparationX;
+                }
             }
+            valX += valueSeparationX;
 
-            // Fan speeds
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            // Fans
             for (int j = 0; j < FAN_N; j++) {
                 tempVal = fanSpeedsHist.back()[j];
-                DrawText(renderer, "Fan" + std::to_string(j) + ": " + std::to_string(tempVal), smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
+                DrawText(renderer, "Fan" + std::to_string(j) + ": " + std::to_string(tempVal) + speedUnit, smallfont, valX, valY, 0, {0, 255, 0});
+                if (j % 2 == 0) valY += valueSeparationY;
+                else {
+                    valY -= valueSeparationY;
+                    valX += valueSeparationX;
+                }
+            }
+            
+            // Labels
+            // Inlet & exhaust
+            tempVal = inletTempHist.back();
+            DrawText(renderer, "Inlet", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 0});
+            tempVal = exhaustTempHist.back();
+            DrawText(renderer, "Exhaust", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {0, 0, 255});
+
+            // CPUs
+            for (int j = 0; j < CPU_N; j++) {
+                tempVal = cpuTempsHist.back()[j];
+                DrawText(renderer, "CPU" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
+            }
+
+            // Fans
+            for (int j = 0; j < FAN_N; j++) {
+                tempVal = fanSpeedsHist.back()[j];
+                DrawText(renderer, "Fan" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
             }
         }
 

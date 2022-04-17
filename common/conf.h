@@ -39,7 +39,7 @@ const std::string ipmiAcquireControlCommand = "ipmitool raw 0x30 0x30 0x01 0x00"
 const std::vector<std::pair<float, float>> fanCurve = {
     {0.0f, 0.0f},
     {30.0f, 0.0f},
-    {40.0f, 10.0f},
+    {40.0f, 5.0f},
     {50.0f, 15.0f},
     {60.0f, 30.0f}
 };
