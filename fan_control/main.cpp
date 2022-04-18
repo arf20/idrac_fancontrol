@@ -26,32 +26,6 @@ void watchCallback(SensorData sd) {
 	fanSpeedsHist.push_back(sd.fanSpeeds);
 	totalPowerHist.push_back(sd.totalPower);
 
-	if (server) {
-		// Send to multicast clients
-		Packet packet { };
-
-		// Set hostname
-		char hostname[1024];
-		gethostname(hostname, 1024);
-		memcpy(packet.host, hostname, 24);
-		packet.host[23] = '\0';
-
-		packet.timeNow = std::chrono::system_clock::to_time_t(sd.timeNow);
-
-		// Set fields
-		packet.inletTemp = sd.inletTemp;
-		packet.exhaustTemp = sd.exhaustTemp;
-		packet.totalPower = sd.totalPower;
-
-		for (int i = 0; i < CPU_N; i++)
-			packet.cpuTemps[i] = sd.cpuTemps[i];
-
-		for (int i = 0; i < FAN_N; i++)
-			packet.fanSpeeds[i] = sd.fanSpeeds[i];
-
-		serverSend(packet);
-	}
-
 	// Compute SAMPLE_AVG_N sample average of the averages of CPU temperatures
 	float tempAvg = 0.0f;
 	if (timeHist.size() >= SAMPLE_AVG_N) {
@@ -84,6 +58,39 @@ void watchCallback(SensorData sd) {
 			// Temperature not handled, return control to iDRAC
 			returnControl();
 		}
+
+		graphTempAvg = tempAvg;
+		graphControlSpeed = speed;
+
+		if (server) {
+			// Send to multicast clients
+			Packet packet { };
+
+			// Set hostname
+			char hostname[1024];
+			gethostname(hostname, 1024);
+			memcpy(packet.host, hostname, 24);
+			packet.host[23] = '\0';
+
+			packet.control = true;
+			packet.tempAvg = tempAvg;
+			packet.ctrlSpeed = speed;
+
+			packet.timeNow = std::chrono::system_clock::to_time_t(sd.timeNow);
+
+			// Set fields
+			packet.inletTemp = sd.inletTemp;
+			packet.exhaustTemp = sd.exhaustTemp;
+			packet.totalPower = sd.totalPower;
+
+			for (int i = 0; i < CPU_N; i++)
+				packet.cpuTemps[i] = sd.cpuTemps[i];
+
+			for (int i = 0; i < FAN_N; i++)
+				packet.fanSpeeds[i] = sd.fanSpeeds[i];
+
+			serverSend(packet);
+		}
 	}
 
 	// Print
@@ -110,6 +117,7 @@ void watchCallback(SensorData sd) {
 
 int main(int argc, char **argv) {
 	bool graph = true;
+	graphControl = true;
 
 	for (int i = 1; i < argc; i++) {
 		if (std::string(argv[i]) == "--no-graph") graph = false;

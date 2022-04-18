@@ -52,7 +52,7 @@ bool clientInit(std::string srcAddr, unsigned short port) {
     return true;
 }
 
-void clientLoop(std::function<void(SensorData)> callback) {
+void clientLoop(std::function<void(SensorData, ControlData)> callback) {
     Packet buff;
     unsigned int addrlen = sizeof(addr);
 
@@ -73,6 +73,14 @@ void clientLoop(std::function<void(SensorData)> callback) {
         for (int i = 0; i < FAN_N; i++)
             sd.fanSpeeds[i] = buff.fanSpeeds[i];
 
-        callback(sd);
+        ControlData cd;
+        if (buff.control) {
+            cd.control = true;
+            cd.tempAvg = buff.tempAvg;
+            cd.ctrlSpeed = buff.ctrlSpeed;
+        }
+        else cd.control = false;
+
+        callback(sd, cd);
     }
 }

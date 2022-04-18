@@ -17,6 +17,12 @@ std::vector<std::array<float, CPU_N>> cpuTempsHist;
 std::vector<std::array<float, FAN_N>> fanSpeedsHist;
 std::vector<float> totalPowerHist;
 
+bool graphControl = false;
+float graphTempAvg = 0.0f;
+int graphControlSpeed = 0;
+bool graphRemote = false;
+std::vector<int> ctrlSpeedHist;
+
 
 #define WIDTH 1280
 #define HEIGHT 720
@@ -194,7 +200,7 @@ void graphLoop() {
 
         // Delete points older than timeLimit
         for (int i = 0; i < timeHist.size(); i++) {
-            std::chrono::duration<float> diff = std::chrono::system_clock::now() - timeHist[i];
+            std::chrono::duration<float> diff = timeNow - timeHist[i];
             if (diff.count() > timeLimit) {
                 timeHist.erase(timeHist.begin());
                 inletTempHist.erase(inletTempHist.begin());
@@ -229,8 +235,8 @@ void graphLoop() {
             int size = timeHist.size();
 
             for (int i = 0; i < size - 1; i++) {
-                std::chrono::duration<float> diff1 = std::chrono::system_clock::now() - timeHist[i];
-                std::chrono::duration<float> diff2 = std::chrono::system_clock::now() - timeHist[i + 1];
+                std::chrono::duration<float> diff1 = timeNow - timeHist[i];
+                std::chrono::duration<float> diff2 = timeNow - timeHist[i + 1];
                 int x1 = timeX(diff1.count());
                 int x2 = timeX(diff2.count());
 
@@ -261,13 +267,39 @@ void graphLoop() {
                     y2 = mapfloat(fanSpeedsHist[i + 1][j], speedMin, speedMax, fanBottom, fanTop);
                     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
                 }
+
+                if (graphControl) {
+                    SDL_SetRenderDrawColor(renderer, 0, 255, 255, SDL_ALPHA_OPAQUE);
+                    y1 = mapfloat(ctrlSpeedHist[i], 0, 100, fanBottom, fanTop);
+                    y2 = mapfloat(ctrlSpeedHist[i + 1], 0, 100, fanBottom, fanTop);
+                    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+                }
+            }
+
+            // Labels
+            // Inlet & exhaust
+            int tempVal = inletTempHist.back();
+            DrawText(renderer, "Inlet", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 0});
+            tempVal = exhaustTempHist.back();
+            DrawText(renderer, "Exhaust", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {0, 0, 255});
+
+            // CPUs
+            for (int j = 0; j < CPU_N; j++) {
+                tempVal = cpuTempsHist.back()[j];
+                DrawText(renderer, "CPU" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
+            }
+
+            // Fans
+            for (int j = 0; j < FAN_N; j++) {
+                tempVal = fanSpeedsHist.back()[j];
+                DrawText(renderer, "Fan" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
             }
 
             // Values
             // Inlet
             int valX = left;
             int valY = margin;
-            int tempVal = inletTempHist.back();
+            tempVal = inletTempHist.back();
             DrawText(renderer, "Inlet: " + std::to_string(tempVal) + tempUnit, smallfont, valX, valY, 0, {255, 0, 0});
             valY += valueSeparationY;
 
@@ -286,7 +318,7 @@ void graphLoop() {
                     valX += valueSeparationX;
                 }
             }
-            valX += valueSeparationX;
+            //valX += valueSeparationX;
 
             // Fans
             for (int j = 0; j < FAN_N; j++) {
@@ -298,27 +330,36 @@ void graphLoop() {
                     valX += valueSeparationX;
                 }
             }
-            
-            // Labels
-            // Inlet & exhaust
-            tempVal = inletTempHist.back();
-            DrawText(renderer, "Inlet", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 0});
-            tempVal = exhaustTempHist.back();
-            DrawText(renderer, "Exhaust", smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {0, 0, 255});
+            //valX += valueSeparationX;
 
-            // CPUs
-            for (int j = 0; j < CPU_N; j++) {
-                tempVal = cpuTempsHist.back()[j];
-                DrawText(renderer, "CPU" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, tempMin, tempMax, tempBottom, tempTop), TEXT_CENTERY, {255, 0, 255});
+            // Control
+            if (graphControl) {
+                // Average temperature
+                DrawText(renderer, "Avg Temp: " + std::to_string(graphTempAvg) + tempUnit, smallfont, valX, valY, 0, {255, 255, 0});
+                valY += valueSeparationY;
+
+                DrawText(renderer, "Ctrl speed: " + std::to_string(graphControlSpeed) + "%", smallfont, valX, valY, 0, {0, 255, 255});
+                valX += valueSeparationX; valY -= valueSeparationY;
+
+                int avgTempY = mapfloat(graphTempAvg, tempMin, tempMax, tempBottom, tempTop);
+                std::chrono::duration<float> avgStartDiff = timeNow - timeHist[timeHist.size() - std::min((int)timeHist.size(), 7)];
+                std::chrono::duration<float> avgEndDiff = timeNow - timeHist[timeHist.size() - 1];
+                SDL_SetRenderDrawColor(renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderDrawLine(renderer, timeX(avgStartDiff.count()), avgTempY, timeX(avgEndDiff.count()) - 1, avgTempY);
+
+                //std::cout << avgStartDiff.count() << std::endl;
             }
 
-            // Fans
-            for (int j = 0; j < FAN_N; j++) {
-                tempVal = fanSpeedsHist.back()[j];
-                DrawText(renderer, "Fan" + std::to_string(j), smallfont, right + 3, mapfloat(tempVal, speedMin, speedMax, fanBottom, fanTop), TEXT_CENTERY, {0, 255, 0});
-            }
+
+            valX = right;
+            DrawText(renderer, graphControl ? "control" : "monitor", smallfont, valX, valY, 0, {255, 255, 255});
+            valY += valueSeparationY;
+
+            DrawText(renderer, graphRemote ? "remote" : "local", smallfont, valX, valY, 0, {255, 255, 255});
+            valX += valueSeparationX; valY -= valueSeparationY;
         }
 
+        SDL_SetRenderDrawColor(renderer, 255, 0, 255, SDL_ALPHA_OPAQUE);
         SDL_RenderPresent(renderer);
 
         while (SDL_PollEvent(&event)) {

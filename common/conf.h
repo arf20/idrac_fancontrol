@@ -56,12 +56,15 @@ const std::vector<std::pair<float, float>> fanCurve = {
 // MULTICAST
 struct Packet {
     char host[24];
+    bool control;
     time_t timeNow;
     uint8_t inletTemp;
     uint8_t exhaustTemp;
     uint8_t totalPower;
     uint8_t cpuTemps[CPU_N];
     uint16_t fanSpeeds[FAN_N];
+    float tempAvg;
+    uint8_t ctrlSpeed;
 };
 
 const std::string multicastAddr = "239.255.217.152";
