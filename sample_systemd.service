@@ -1,0 +1,14 @@
+[Unit]
+Description=fan_control iDRAC fan speed controller
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=30
+User=root
+ExecStart=fan_control --no-graph --server
+
+[Install]
+WantedBy=multi-user.target
