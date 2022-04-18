@@ -29,6 +29,9 @@ std::vector<int> ctrlSpeedHist;
 
 // Fonts
 #define FONT "../FSEX300.ttf"
+#define FONT2 "FSEX300.ttf"
+#define FONT3 "/usr/share/fonts/truetype/fixedsys/FSEX300.ttf"
+
 constexpr int midfontsize = 24;
 constexpr int smallfontsize = 16;
 
@@ -113,12 +116,21 @@ bool graphInit() {
     }
 
     // Text font
+    std::string goodTTFFile;
     if ((midfont = TTF_OpenFont(FONT, midfontsize)) == nullptr) {
         std::cout << "Error opening font: " << TTF_GetError() << std::endl;
-        return false;
-    }
 
-    smallfont = TTF_OpenFont(FONT, smallfontsize); // Already checked file for good
+        if ((midfont = TTF_OpenFont(FONT2, midfontsize)) == nullptr) {
+            std::cout << "Error opening font: " << TTF_GetError() << std::endl;
+
+            if ((midfont = TTF_OpenFont(FONT3, midfontsize)) == nullptr) {
+                std::cout << "Error opening font: " << TTF_GetError() << std::endl;
+                return false;
+            } else goodTTFFile = FONT3;
+        } else goodTTFFile = FONT2;
+    } else goodTTFFile = FONT;
+
+    smallfont = TTF_OpenFont(goodTTFFile.c_str(), smallfontsize); // Already checked file for good
 
     return true;
 }
