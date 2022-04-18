@@ -23,7 +23,7 @@ make
 ```
 
 ## temp_monitor
-Monitors temperatures, fan speeds and power of DELL PowerEdge R series servers in real time, printing instant data in stdout and updating with VT100 escape codes. And plots real time graphs in a X window via SDL2, using software rendering so it works over SSH X11 forwarding. Now it can transmit UDP packets reporting the data to a remote temp_monitor.
+Monitors temperatures, fan speeds and power of DELL PowerEdge R series servers in real time, printing instant data in stdout and updating with VT100 escape codes. And plots real time graphs in a X window via SDL2, using software rendering so it works over SSH X11 forwarding. Now it can transmit UDP packets reporting the data to a remote temp_monitor. Do note a bit of latency of the fan speed graph, being shifted from the control speed.
 ```
   --no-graph      Do not create a window
   --no-vt100      Do not use VT100 escape sequences
