@@ -208,6 +208,8 @@ void graphLoop() {
                 cpuTempsHist.erase(cpuTempsHist.begin());
                 fanSpeedsHist.erase(fanSpeedsHist.begin());
                 totalPowerHist.erase(totalPowerHist.begin());
+                if (graphControl)
+                    ctrlSpeedHist.erase(ctrlSpeedHist.begin());
             } else {
                 break;
             }
