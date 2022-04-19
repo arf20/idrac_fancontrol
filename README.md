@@ -32,7 +32,7 @@ Monitors temperatures, fan speeds and power of DELL PowerEdge R series servers i
 ```
 
 ## fan_control
-Reads temperatures, calculates a temperature average of N samples, and computes an appropiate fan speed for given temperature with a fan curve, and tells iDRAC to apply it. It is also able to transmit monitor and control data to a remote temp_monitor over UDP multicast.
+Reads temperatures, calculates a temperature average of N samples, and computes an appropiate fan speed for given temperature with a fan curve, and tells iDRAC to apply it. It is also able to transmit monitor and control data to a remote temp_monitor over UDP multicast. In my case, the default fan curve shuts the fans to a very quiet level of around 9-10% (~2000rpm) , while maintaining a cool 45ºC on both sockets, with a 19ºC inlet.
 ```
   --no-graph      Do not create a window
   --no-vt100      Do not use VT100 escape sequences
