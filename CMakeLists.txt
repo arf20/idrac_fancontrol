@@ -5,10 +5,16 @@ set(COMMON_SRC
     "../common/watch.cpp"
     "../common/graph.cpp"
     "../common/exec.cpp"
-    "../common/server.cpp"
 )
 
+if (NOT WIN32)
+    set(COMMON_SRC "../common/server.cpp")
+endif()
+
 add_subdirectory(temp_monitor)
-add_subdirectory(fan_control)
+
+if (NOT WIN32)
+	add_subdirectory(fan_control)
+endif()
 
 install(FILES FSEX300.ttf DESTINATION /usr/share/fonts/truetype/fixedsys/)

@@ -1,12 +1,19 @@
 #include "../common/conf.h"
 #include "client.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <cstring>
+#ifdef _WIN32
+    #include <Winsock2.h>
+    #include <WS2tcpip.h>
+    #include <Windows.h>
+    #define strerror(errno) WSAGetLastError()
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <errno.h>
+    #include <cstring>
+#endif
 
 #include <string>
 #include <chrono>
@@ -17,6 +24,11 @@ static int fd = 0;
 static sockaddr_in addr { };
 
 bool clientInit(std::string srcAddr, unsigned short port) {
+    #ifdef _WIN32
+    WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
+    #endif
+
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cout << "Error creating socket: " << strerror(errno) << std::endl;
         return false;
@@ -54,7 +66,11 @@ bool clientInit(std::string srcAddr, unsigned short port) {
 
 void clientLoop(std::function<void(SensorData, ControlData)> callback) {
     Packet buff;
+    #ifdef _WIN32
+    int addrlen = sizeof(addr);
+    #else
     unsigned int addrlen = sizeof(addr);
+    #endif
 
     while (true) {
         if (recvfrom(fd, (char*)&buff, sizeof(Packet), 0, (sockaddr*)&addr, &addrlen) < 0) {

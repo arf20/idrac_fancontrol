@@ -1,6 +1,8 @@
 #include "../common/watch.h"
 #include "../common/graph.h"
-#include "../common/server.h"
+#ifndef _WIN32
+	#include "../common/server.h"
+#endif
 #include "client.h"
 
 #include <iostream>
@@ -45,6 +47,7 @@ void watchCallback(SensorData sd) {
 	fanSpeedsHist.push_back(sd.fanSpeeds);
 	totalPowerHist.push_back(sd.totalPower);
 
+	#ifndef _WIN32
 	if (server) {
 		// Send to multicast clients
 		Packet packet { };
@@ -72,6 +75,7 @@ void watchCallback(SensorData sd) {
 
 		serverSend(packet);
 	}
+	#endif
 }
 
 void clientCallback(SensorData sd, ControlData cd) {
@@ -120,13 +124,17 @@ int main(int argc, char **argv) {
 	for (int i = 1; i < argc; i++) {
 		if (std::string(argv[i]) == "--no-graph") graph = false;
 		if (std::string(argv[i]) == "--no-vt100") screenOverwrite = false;
+		#ifndef _WIN32
 		if (std::string(argv[i]) == "--server") { server = true; }
+		#endif
 		if (std::string(argv[i]) == "--client")   client = true;
 	}
 
+	#ifndef _WIN32
 	if (server)
 		if (!serverInit(multicastAddr, multicastPort))
 			exit(1);
+	#endif
 
 	if (client)
 		if (!clientInit(multicastAddr, multicastPort))
